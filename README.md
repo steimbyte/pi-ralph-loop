@@ -1,94 +1,47 @@
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/steimerbyte)
-
-> ⭐ If you find this useful, consider [supporting me on Ko-fi](https://ko-fi.com/steimerbyte)!
-
-<img src="https://storage.ko-fi.com/cdn/generated/fhfuc7slzawvi/2026-04-23_rest-162bec27f642a562eb8401eb0ceb3940-onjpojl8.jpg" width="250" alt="steimerbyte" style="border-radius: 5%; margin: 16px 0; max-width: 100%;"/>
-
 # pi-ralph-loop
 
-A looping command for [pi](https://github.com/badlogic/pi-mono) that keeps sending "continue" to the LLM with your original task context, until it writes the special marker `>system-promise-done<`.
+A looping command for [pi](https://github.com/badlogic/pi-mono) that auto-reprompts the LLM with your original task until stopped.
 
-![pi](https://img.shields.io/badge/pi-coding--agent-v1.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-## Use Case
+## Features
 
-This extension is useful when you want the LLM to keep working on a task until it explicitly signals completion. Just tell the LLM to end its response with `>system-promise-done<` when finished.
-
-## How It Works
-
-1. `/ralph-loop` captures your last user message as the "task"
-2. Sends "continue" with the original task context
-3. After each LLM turn completes (no more tool calls)
-4. Checks if the response contains `>system-promise-done<`
-5. If found: stops the loop and shows completion notification
-6. If not found: sends another "continue" with task context
+- **Single toggle command**: `/ralph` to start/stop
+- **Per-session state**: Each session has its own loop state
+- **Auto-reprompt**: Automatically sends your task after each LLM response
+- **Visual indicator**: Blinking green circle when active
 
 ## Installation
 
-### Automatic (recommended)
-
 ```bash
-pi install git:github.com:alephtex/pi-ralph-loop
+pi install git:github.com:steimbyte/pi-ralph-loop
 ```
-
-### Manual
-
-1. Clone the repository:
-```bash
-git clone https://github.com/alephtex/pi-ralph-loop.git
-```
-
-2. Copy the extension to your extensions folder:
-```bash
-cp -r pi-ralph-loop/index.ts ~/.pi/agent/extensions/
-```
-
-3. Restart pi or run `/reload`
 
 ## Usage
 
-```
-You: Write a comprehensive test suite for my auth module.
-     Make sure to end with >system-promise-done< when complete.
+```bash
+# Start loop with a task
+/ralph Write tests for my auth module
 
-/ralph-loop
+# Or start with last user message as task
+You: Write a comprehensive test suite
+/ralph
 
-pi: Starting Ralph loop...
-
-pi: (continues automatically with task context)
-
-    continue
-    Task: Write a comprehensive test suite for my auth module.
-          Make sure to end with >system-promise-done< when complete.
-
-    ... LLM writes tests ...
-
-    All tests are written.
-    >system-promise-done<
-
-pi: Ralph loop complete after 3 iteration(s)!
+# Stop the loop
+/ralph
 ```
 
-## Commands
+## How It Works
 
-| Command | Description |
-|---------|-------------|
-| `/ralph-loop` | Start the loop - captures your last message as task, sends "continue" with context |
-| `/ralph-stop` | Stop the loop manually |
+1. `/ralph` captures your task (from args or last message)
+2. Sends the task to the LLM
+3. After each response, automatically reprompts with the same task
+4. Loops until you type `/ralph` again to stop
 
-## Status Bar
+## Status Indicator
 
-While running, the iteration count is shown in the status bar:
-```
-Ralph loop: iteration 3...
-```
-
-## Tips
-
-- Write a clear initial prompt before running `/ralph-loop`
-- Include "end with >system-promise-done<" in your original prompt
-- The original task is truncated to 500 chars if too long
+- 🟢 (blinking green) = Ralph is active
+- ⚫ (dim) = Ralph is stopped
 
 ## Requirements
 
